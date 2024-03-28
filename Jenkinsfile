@@ -1,42 +1,40 @@
 pipeline {
-    agent any
-    tools {
-        maven 'maven3'
-    }
-
-    stages {
-        stage('Clone-Repo') {
-	    	steps {
-	            git branch: 'master', url: 'https://github.com/rushanksam/gamutkart.git'
-	    	}
+    agent {
+        node {
+            label "slave"
         }
-	stage('Build') {
-		steps {
-			sh 'mvn install'
-		}
-	}	
+     }
  
-	stage ('Compile'){
-	        steps {
-			sh 'mvn clean compile'
-                }
-	}
-
-	stage('Run Tests') {
-	    steps {
-	       sh 'mvn test'
-	    }
-	}
-
-        stage('Package as WAR') {
+    tools {
+        maven 'maven3' 
+    }
+    stages {
+        stage ('Git Repo') {
+            steps {
+               git branch: 'main', credentialsId: 'git', url: 'https://github.com/rushanksam/maven.git'
+            }
+        }
+        stage ('compile') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage ('test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage ('Build') {
             steps {
                 sh 'mvn package'
             }
         }
-	stage('Deployment') {
-	   steps {
-		sh 'sshpass -p staragile scp target/gamutkart.war staragile@172.31.44.167:/home/staragile/apache-tomcat-9.0.85/webapps/'
-	}
+        stage ('Deploy') {
+            steps {
+                deploy adapters: [tomcat9(credentialsId: 'tomcat', path: '', url: 'http://52.13.16.69:8080/')], contextPath: 'login', war: '**/*.war'
+            }
+        }
     }
+}
 }
 }
