@@ -1,10 +1,13 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven3'
+    }
 
     stages {
         stage('Clone-Repo') {
 	    	steps {
-	        	checkout scm
+	            git branch: 'master', url: 'https://github.com/rushanksam/gamutkart.git'
 	    	}
         }
 	stage('Build') {
